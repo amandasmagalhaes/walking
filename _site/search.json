@@ -1,0 +1,9 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Walking SalURBAL Climate Proposal",
+    "section": "",
+    "text": "1 Setup\n\n\nClean environment\nrm(list = ls())\n\n\n\n\nDirectory\nsetwd(\"C:/Users/amand/Amanda/GitHub/walking\")\n\n\n\n\nLibraries\npacman::p_load(\n  haven,\n  readxl,\n  dplyr,\n  tidyr,\n  stringr,\n  purrr,\n  ggplot2,\n  patchwork,\n  ggeffects,\n  grid,\n  magick\n)\n\n\n\n\nData\nwalking &lt;- haven::read_dta(\"walking.dta\")\n\n\n\n\n2 Introduction\nText here.\nExample citation (Lee et al. 2022).\n\n\n\n\n\nReferences\n\nLee, I-Min, Eric J. Shiroma, and Peter T. Katzmarzyk. 2022. “Effect of Physical Inactivity on Major Non-Communicable Diseases Worldwide.” The Lancet 380 (9838): 219–29."
+  }
+]
