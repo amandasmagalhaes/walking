@@ -32,22 +32,15 @@ setwd("C:/Users/amand/Amanda/GitHub/walking")
 #| label: Libraries
 #| code-summary: Libraries
 
-pacman::p_load(# Data import
-               haven, readxl,
-               # Data manipulation
-               dplyr, tidyr, stringr, purrr,
-               # Data visualization
-               ggplot2, patchwork, ggeffects, grid, magick,
-               # Geospatial
-               sf, ggspatial, tidygeocoder, rnaturalearth,
-               # Statistical modeling
-               splines, glmmTMB, lme4, mgcv,
-               # Post-model-fitting
-               performance, DHARMa,
-               # Correlation
-               Hmisc, reshape2,
-               # Parallel computing
-               parallel, pbapply
+pacman::p_load(
+  haven, readxl,
+  dplyr, tidyr, stringr,
+  ggplot2, patchwork,
+  gt,
+  sf,
+  splines, glmmTMB, lme4, mgcv,
+  performance, DHARMa,
+  corrplot
 )
 ```
 
@@ -94,7 +87,7 @@ dta %>%
     x = "",
     y = "Global walking (min/week) \n"
   ) +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 14) +
   theme(
     legend.position = "none"
   )
@@ -130,7 +123,7 @@ dta %>%
     x = "",
     y = "Leisure walking (min/week) \n"
   ) +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 14) +
   theme(
     legend.position = "none"
   )
@@ -166,7 +159,7 @@ dta %>%
     x = "",
     y = "Transportation walking (min/week) \n"
   ) +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 14) +
   theme(
     legend.position = "none"
   )
@@ -204,7 +197,7 @@ dta %>%
     x = "\n Mean temperature (°C)",
     y = "Frequency \n"
   ) +
-  theme_minimal(base_size = 18)
+  theme_minimal(base_size = 14)
 ```
 
 ```{r}
@@ -238,7 +231,7 @@ dta %>%
     x = "",
     y = "Mean temperature (°C) \n"
   ) +
-  theme_minimal(base_size = 18) +
+  theme_minimal(base_size = 14) +
   theme(
     legend.position = "none"
   )
@@ -265,7 +258,7 @@ dta %>%
     x = "\n Mean temperature (°C)",
     y = "Global walking (min/week) \n"
   ) +
-  theme_minimal(base_size = 18)
+  theme_minimal(base_size = 14)
 ```
 
 ```{r}
@@ -285,7 +278,7 @@ dta %>%
     x = "\n Mean temperature (°C)",
     y = "Leisure walking (min/week) \n"
   ) +
-  theme_minimal(base_size = 18)
+  theme_minimal(base_size = 14)
 ```
 
 ```{r}
@@ -305,6 +298,837 @@ dta %>%
     x = "\n Mean temperature (°C)",
     y = "Transportation walking (min/week) \n"
   ) +
-  theme_minimal(base_size = 18)
+  theme_minimal(base_size = 14)
 ```
 
+# Tabel 1
+
+```{r}
+#| label: Functions
+#| code-summary: Functions
+
+make_continuous_table <- function(data, variable, label, digits = 1) {
+
+  safe_min <- function(x) {
+    if (all(is.na(x))) NA_real_ else min(x, na.rm = TRUE)
+  }
+
+  safe_max <- function(x) {
+    if (all(is.na(x))) NA_real_ else max(x, na.rm = TRUE)
+  }
+
+  total <- data.frame(
+    iso2 = "Total",
+    median = median(data[[variable]], na.rm = TRUE),
+    Q1_val = quantile(data[[variable]], .25, na.rm = TRUE),
+    Q3_val = quantile(data[[variable]], .75, na.rm = TRUE),
+    min_val = safe_min(data[[variable]]),
+    max_val = safe_max(data[[variable]])
+  )
+
+  by_iso2 <- data %>%
+    filter(!is.na(iso2)) %>%
+    group_by(iso2) %>%
+    summarise(
+      median = median(.data[[variable]], na.rm = TRUE),
+      Q1_val = quantile(.data[[variable]], .25, na.rm = TRUE),
+      Q3_val = quantile(.data[[variable]], .75, na.rm = TRUE),
+      min_val = safe_min(.data[[variable]]),
+      max_val = safe_max(.data[[variable]]),
+      .groups = "drop"
+    )
+
+  stats <- bind_rows(total, by_iso2)
+
+  bind_rows(
+
+    stats %>%
+      mutate(
+        value = ifelse(
+          is.na(median),
+          NA_character_,
+          paste0(
+            format(round(median, digits), trim = TRUE),
+            " (",
+            format(round(Q1_val, digits), trim = TRUE),
+            "; ",
+            format(round(Q3_val, digits), trim = TRUE),
+            ")"
+          )
+        ),
+        Characteristic = paste0(label, ", median (Q1; Q3)")
+      ) %>%
+      select(Characteristic, iso2, value),
+
+    stats %>%
+      mutate(
+        value = ifelse(
+          is.na(min_val),
+          NA_character_,
+          paste0(
+            format(round(min_val, digits), trim = TRUE),
+            " - ",
+            format(round(max_val, digits), trim = TRUE)
+          )
+        ),
+        Characteristic = paste0(label, ", min-max")
+      ) %>%
+      select(Characteristic, iso2, value)
+
+  )
+}
+
+make_categorical_table <- function(data, variable, label) {
+
+  total <- data %>%
+    filter(!is.na(.data[[variable]])) %>%
+    count(.data[[variable]]) %>%
+    mutate(
+      iso2 = "Total",
+      percent = 100 * n / sum(n),
+      value = paste0(
+        format(n, big.mark = ","),
+        " (",
+        formatC(percent, format = "f", digits = 1),
+        ")"
+      )
+    ) %>%
+    rename(level = all_of(variable)) %>%
+    select(iso2, level, value)
+
+  by_iso2 <- data %>%
+    filter(!is.na(.data[[variable]]), !is.na(iso2)) %>%
+    group_by(iso2, .data[[variable]]) %>%
+    summarise(
+      n = n(),
+      .groups = "drop"
+    ) %>%
+    group_by(iso2) %>%
+    mutate(
+      percent = 100 * n / sum(n),
+      value = paste0(
+        format(n, big.mark = ","),
+        " (",
+        formatC(percent, format = "f", digits = 1),
+        ")"
+      )
+    ) %>%
+    ungroup() %>%
+    rename(level = all_of(variable)) %>%
+    select(iso2, level, value)
+
+  bind_rows(total, by_iso2) %>%
+    mutate(
+      level = as.character(level),
+      Characteristic = paste0("   ", label, " - ", level)
+    ) %>%
+    select(Characteristic, iso2, value) %>%
+    bind_rows(
+      tibble(
+        Characteristic = label,
+        iso2 = "Total",
+        value = ""
+      ),
+      .
+    )
+}
+```
+
+```{r}
+#| label: Context
+#| code-summary: Context
+
+# Number of cities
+
+n_cities <- dta %>%
+  filter(salid1_tag == 1) %>%
+  count(iso2, name = "value") %>%
+  bind_rows(
+    summarise(., iso2 = "Total", value = sum(value))
+  ) %>%
+  mutate(
+    value = format(
+      value,
+      big.mark = ",",
+      decimal.mark = ".",
+      scientific = FALSE
+    ),
+    Characteristic = "Number of cities"
+  ) %>%
+  select(Characteristic, iso2, value)
+
+# Participants per city
+
+participants_city <- make_continuous_table(
+  data = dta %>% filter(!is.na(salid1)),
+  variable = "salid1_obs",
+  label = "Participants per city"
+)
+
+# Number of sub-cities
+
+n_subcities <- dta %>%
+  filter(salid2_tag == 1) %>%
+  count(iso2, name = "value") %>%
+  bind_rows(
+    summarise(., iso2 = "Total", value = sum(value))
+  ) %>%
+  mutate(
+    value = format(
+      value,
+      big.mark = ",",
+      decimal.mark = "."
+    ),
+    Characteristic = "Number of sub-cities"
+  ) %>%
+  select(Characteristic, iso2, value)
+
+# Participants per sub-city
+
+participants_subcity <- make_continuous_table(
+  data = dta %>% filter(!is.na(salid2)),
+  variable = "salid2_obs",
+  label = "Participants per sub-city"
+)
+
+# Number of participants
+
+n_participants <- dta %>%
+  count(iso2, name = "n") %>%
+  bind_rows(
+    summarise(., iso2 = "Total", n = sum(n))
+  ) %>%
+  mutate(
+    pct = round(100 * n / n[iso2 == "Total"], 1),
+    value = ifelse(
+      iso2 == "Total",
+      paste0(format(n, big.mark = ","), " (100.0)"),
+      paste0(format(n, big.mark = ","), " (", pct, ")")
+    ),
+    Characteristic = "Number of participants, n (%)"
+  ) %>%
+  select(Characteristic, iso2, value)
+
+# Context table
+
+context_table <- bind_rows(
+  n_cities,
+  participants_city,
+  n_subcities,
+  participants_subcity,
+  n_participants
+)
+
+context_table <- context_table %>%
+  mutate(Domain = "Context")
+```
+
+```{r}
+#| label: Individual-level
+#| code-summary: Individual-level
+
+# Recoding categorical variables
+
+dta <- dta %>%
+  mutate(
+
+    svymale = factor(
+      svymale,
+      levels = c(0, 1),
+      labels = c("Female", "Male")
+    ),
+
+    svyedu = case_when(
+      svyedu %in% c(9998, 9999) ~ NA_real_,
+      TRUE ~ as.numeric(svyedu)
+    ),
+
+    svyedu = factor(
+      svyedu,
+      levels = c(1, 2, 3, 4),
+      labels = c(
+        "Less than primary",
+        "Primary",
+        "Secondary",
+        "University or higher"
+      )
+    ),
+
+    svypawalkcat = factor(
+      svypawalkcat,
+      levels = c(0, 1),
+      labels = c("Inactive", "Active")
+    ),
+
+    svypawleicat = factor(
+      svypawleicat,
+      levels = c(0, 1),
+      labels = c("Inactive", "Active")
+    ),
+
+    svypawtrncat = factor(
+      svypawtrncat,
+      levels = c(0, 1),
+      labels = c("Inactive", "Active")
+    )
+  )
+
+# Age
+
+age_total <- dta %>%
+  summarise(
+    iso2 = "Total",
+    mean = mean(svyage, na.rm = TRUE),
+    sd = sd(svyage, na.rm = TRUE),
+    min_val = min(svyage, na.rm = TRUE),
+    max_val = max(svyage, na.rm = TRUE)
+  )
+
+age_by_iso2 <- dta %>%
+  group_by(iso2) %>%
+  summarise(
+    mean = mean(svyage, na.rm = TRUE),
+    sd = sd(svyage, na.rm = TRUE),
+    min_val = min(svyage, na.rm = TRUE),
+    max_val = max(svyage, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+age_stats <- bind_rows(age_total, age_by_iso2)
+
+age_table <- bind_rows(
+
+  age_stats %>%
+    mutate(
+      value = paste0(
+        format(round(mean, 1), trim = TRUE),
+        " (",
+        format(round(sd, 1), trim = TRUE),
+        ")"
+      ),
+      Characteristic = "Age, mean (SD)"
+    ) %>%
+    select(Characteristic, iso2, value),
+
+  age_stats %>%
+    mutate(
+      value = paste0(
+        format(round(min_val, 1), trim = TRUE),
+        " - ",
+        format(round(max_val, 1), trim = TRUE)
+      ),
+      Characteristic = "Age, min-max"
+    ) %>%
+    select(Characteristic, iso2, value)
+
+)
+
+# Sex
+
+sex_table <- make_categorical_table(
+  dta,
+  "svymale",
+  "Sex, n (%)"
+)
+
+# Educational level
+
+education_table <- make_categorical_table(
+  dta,
+  "svyedu",
+  "Educational level, n (%)"
+)
+
+# Global walking
+
+global_walk <- make_continuous_table(
+  dta,
+  "svypawalk",
+  "Global walking (min/week)",
+  digits = 0
+)
+
+global_walk_cat <- make_categorical_table(
+  dta,
+  "svypawalkcat",
+  "Global walking, n (%)"
+)
+
+# Leisure walking
+
+leisure_walk <- make_continuous_table(
+  dta,
+  "svypawlei",
+  "Leisure walking (min/week)",
+  digits = 0
+)
+
+leisure_walk_cat <- make_categorical_table(
+  dta,
+  "svypawleicat",
+  "Leisure walking, n (%)"
+)
+
+# Transportation walking
+
+transport_walk <- make_continuous_table(
+  dta,
+  "svypawtrn",
+  "Transportation walking (min/week)",
+  digits = 0
+)
+
+transport_walk_cat <- make_categorical_table(
+  dta,
+  "svypawtrncat",
+  "Transportation walking, n (%)"
+)
+
+# Final individual-level table
+
+individual_table <- bind_rows(
+  age_table,
+  sex_table,
+  education_table,
+  global_walk,
+  global_walk_cat,
+  leisure_walk,
+  leisure_walk_cat,
+  transport_walk,
+  transport_walk_cat
+) %>%
+  mutate(
+    Domain = "Individual-level"
+  )
+```
+
+```{r}
+#| label: Natural environment
+#| code-summary: Natural environment
+
+# Mean temperature
+
+temperature_city <- dta %>%
+  filter(!is.na(salid1)) %>%
+  group_by(iso2, salid1) %>%
+  summarise(
+    value = mean(l1adtemp_pw_1_7_mean, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+temperature_total <- temperature_city %>%
+  summarise(
+    iso2 = "Total",
+    median = median(value, na.rm = TRUE),
+    P10 = quantile(value, .10, na.rm = TRUE),
+    P90 = quantile(value, .90, na.rm = TRUE),
+    min_val = min(value, na.rm = TRUE),
+    max_val = max(value, na.rm = TRUE)
+  )
+
+temperature_by_iso2 <- temperature_city %>%
+  group_by(iso2) %>%
+  summarise(
+    median = median(value, na.rm = TRUE),
+    P10 = quantile(value, .10, na.rm = TRUE),
+    P90 = quantile(value, .90, na.rm = TRUE),
+    min_val = min(value, na.rm = TRUE),
+    max_val = max(value, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+temperature_stats <- bind_rows(
+  temperature_total,
+  temperature_by_iso2
+)
+
+temperature_table <- bind_rows(
+
+  temperature_stats %>%
+    mutate(
+      value = paste0(
+        format(round(median, 1), trim = TRUE),
+        " (",
+        format(round(P10, 1), trim = TRUE),
+        "; ",
+        format(round(P90, 1), trim = TRUE),
+        ")"
+      ),
+      Characteristic = "Mean temperature (°C), median (P10; P90)"
+    ) %>%
+    select(Characteristic, iso2, value),
+
+  temperature_stats %>%
+    mutate(
+      value = paste0(
+        format(round(min_val, 1), trim = TRUE),
+        " - ",
+        format(round(max_val, 1), trim = TRUE)
+      ),
+      Characteristic = "Mean temperature (°C), min-max"
+    ) %>%
+    select(Characteristic, iso2, value)
+
+)
+
+# Climate zone
+
+dta <- dta %>%
+  mutate(
+    becczl1adcat = as.character(
+      haven::as_factor(becczl1adcat)
+    )
+  )
+
+climate_city <- dta %>%
+  filter(
+    !is.na(becczl1adcat),
+    !is.na(salid1)
+  ) %>%
+  distinct(
+    iso2,
+    salid1,
+    becczl1adcat
+  )
+
+climate_total <- climate_city %>%
+  count(becczl1adcat) %>%
+  mutate(
+    iso2 = "Total",
+    percent = 100 * n / sum(n),
+    value = paste0(
+      format(n, big.mark = ","),
+      " (",
+      formatC(percent, digits = 1, format = "f"),
+      ")"
+    )
+  ) %>%
+  transmute(
+    Characteristic = paste0("   ", becczl1adcat),
+    iso2,
+    value
+  )
+
+climate_by_iso2 <- climate_city %>%
+  count(
+    iso2,
+    becczl1adcat
+  ) %>%
+  group_by(iso2) %>%
+  mutate(
+    percent = 100 * n / sum(n),
+    value = paste0(
+      format(n, big.mark = ","),
+      " (",
+      formatC(percent, digits = 1, format = "f"),
+      ")"
+    )
+  ) %>%
+  ungroup() %>%
+  transmute(
+    Characteristic = paste0("   ", becczl1adcat),
+    iso2,
+    value
+  )
+
+climate_table <- bind_rows(
+  tibble(
+    Characteristic = "Major climate zone, n (%)",
+    iso2 = "Total",
+    value = ""
+  ),
+  climate_total,
+  climate_by_iso2
+)
+
+# Greenness
+
+greenness_subcity <- dta %>%
+  filter(!is.na(salid2)) %>%
+  group_by(
+    iso2,
+    salid2
+  ) %>%
+  summarise(
+    value = mean(becmedndvinwl2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+greenness_table <- make_continuous_table(
+  greenness_subcity,
+  "value",
+  "Greenness",
+  digits = 1
+)
+
+# Final natural environment table
+
+natural_table <- bind_rows(
+  temperature_table,
+  climate_table,
+  greenness_table
+)
+
+natural_table <- natural_table %>%
+  mutate(Domain = "Natural environment")
+```
+
+```{r}
+#| label: Built environment
+#| code-summary: Built environment
+
+# Presence of a BRT
+
+brt_city <- dta %>%
+  filter(
+    !is.na(becprsbrtl1ad),
+    !is.na(salid1)
+  ) %>%
+  distinct(
+    iso2,
+    salid1,
+    becprsbrtl1ad
+  )
+
+brt_total <- brt_city %>%
+  count(becprsbrtl1ad) %>%
+  mutate(
+    iso2 = "Total",
+    percent = 100 * n / sum(n),
+    value = paste0(
+      format(n, big.mark = ","),
+      " (",
+      formatC(percent, digits = 1, format = "f"),
+      ")"
+    )
+  ) %>%
+  transmute(
+    Characteristic = paste0("   ", becprsbrtl1ad),
+    iso2,
+    value
+  )
+
+brt_by_iso2 <- brt_city %>%
+  count(
+    iso2,
+    becprsbrtl1ad
+  ) %>%
+  group_by(iso2) %>%
+  mutate(
+    percent = 100 * n / sum(n),
+    value = paste0(
+      format(n, big.mark = ","),
+      " (",
+      formatC(percent, digits = 1, format = "f"),
+      ")"
+    )
+  ) %>%
+  ungroup() %>%
+  transmute(
+    Characteristic = paste0("   ", becprsbrtl1ad),
+    iso2,
+    value
+  )
+
+brt_table <- bind_rows(
+  tibble(
+    Characteristic = "Presence of a BRT, n (%)",
+    iso2 = "Total",
+    value = ""
+  ),
+  brt_total,
+  brt_by_iso2
+)
+
+# Percentage of urban area
+
+urban_area_city <- dta %>%
+  filter(!is.na(salid1)) %>%
+  group_by(
+    iso2,
+    salid1
+  ) %>%
+  summarise(
+    value = mean(becpcturbanl1ad, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+urban_area_table <- make_continuous_table(
+  urban_area_city,
+  "value",
+  "Percentage of urban area",
+  digits = 1
+)
+
+# Population density
+
+population_density_subcity <- dta %>%
+  filter(!is.na(salid2)) %>%
+  group_by(
+    iso2,
+    salid2
+  ) %>%
+  summarise(
+    value = mean(becpopdensl2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+population_density_table <- make_continuous_table(
+  population_density_subcity,
+  "value",
+  "Population density",
+  digits = 0
+)
+
+# Intersection density
+
+intersection_density_subcity <- dta %>%
+  filter(!is.na(salid2)) %>%
+  group_by(
+    iso2,
+    salid2
+  ) %>%
+  summarise(
+    value = mean(becadintdensl2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+intersection_density_table <- make_continuous_table(
+  intersection_density_subcity,
+  "value",
+  "Intersection density",
+  digits = 1
+)
+
+# Parks density
+
+parks_density_subcity <- dta %>%
+  filter(!is.na(salid2)) %>%
+  group_by(
+    iso2,
+    salid2
+  ) %>%
+  summarise(
+    value = mean(becparknumpercapl2, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+parks_density_table <- make_continuous_table(
+  parks_density_subcity,
+  "value",
+  "Parks density",
+  digits = 1
+)
+
+# Final built environment table
+
+built_table <- bind_rows(
+  brt_table,
+  urban_area_table,
+  population_density_table,
+  intersection_density_table,
+  parks_density_table
+)
+
+built_table <- built_table %>%
+  mutate(Domain = "Built environment")
+```
+
+```{r}
+#| label: Social environment
+#| code-summary: Social environment
+
+# Social environment index
+
+social_city <- dta %>%
+  filter(!is.na(salid1)) %>%
+  group_by(
+    iso2,
+    salid1
+  ) %>%
+  summarise(
+    value = mean(cnssei_l1ad, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+social_table <- make_continuous_table(
+  social_city,
+  "value",
+  "Social environment index",
+  digits = 1
+)
+
+social_table <- social_table %>%
+  mutate(Domain = "Social environment")
+```
+
+```{r}
+#| label: Table 1
+#| code-summary: Table 1
+
+library(gt)
+
+table1 <- bind_rows(
+  context_table,
+  individual_table,
+  natural_table,
+  built_table,
+  social_table
+) %>%
+  relocate(
+    Domain,
+    .before = Characteristic
+  ) %>%
+  pivot_wider(
+    names_from = iso2,
+    values_from = value
+  ) %>%
+  rename(
+    Colombia = CO,
+    `El Salvador` = SV,
+    Guatemala = GT,
+    Mexico = MX
+  ) %>%
+  relocate(
+    Total,
+    .after = Characteristic
+  )
+
+table1 %>%
+  gt(
+    groupname_col = "Domain"
+  ) %>%
+  cols_label(
+    Characteristic = "",
+    Total = "Total",
+    Colombia = "Colombia",
+    `El Salvador` = "El Salvador",
+    Guatemala = "Guatemala",
+    Mexico = "Mexico"
+  ) %>%
+  cols_align(
+    align = "left",
+    columns = Characteristic
+  ) %>%
+  cols_align(
+    align = "center",
+    columns = c(
+      Total,
+      Colombia,
+      `El Salvador`,
+      Guatemala,
+      Mexico
+    )
+  ) %>%
+  tab_header(
+    title = md(
+      "**Table 1. Characteristics of the sample by country**"
+    )
+  ) %>%
+  tab_options(
+    table.font.size = px(12),
+    heading.title.font.size = px(14),
+    data_row.padding = px(3),
+    row_group.font.weight = "bold"
+  )
+```
