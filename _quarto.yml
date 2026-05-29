@@ -1,0 +1,23 @@
+project:
+  type: website
+
+website:
+  title: "Walking SALURBAL-Climate Proposal"
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    toc-location: left
+    number-sections: true
+    code-fold: true
+    smooth-scroll: true
+    anchor-sections: true
+    page-layout: article
+
+execute:
+  freeze: auto
+  cache: true
+  warning: false
+  message: false

@@ -1,0 +1,20 @@
+# Quarto
+_freeze/
+_manuscript/
+.quarto/
+
+# Data
+*.dta
+*.csv
+*.RData
+
+# R
+.Rhistory
+.Ruserdata
+
+# Outputs
+*.html
+*.docx
+*.pdf
+/.quarto/
+**/*.quarto_ipynb
