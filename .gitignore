@@ -1,7 +1,8 @@
 # Quarto
 _freeze/
-_manuscript/
+_site/
 .quarto/
+.index_cache/
 
 # Data
 *.dta
@@ -11,10 +12,3 @@ _manuscript/
 # R
 .Rhistory
 .Ruserdata
-
-# Outputs
-*.html
-*.docx
-*.pdf
-/.quarto/
-**/*.quarto_ipynb
