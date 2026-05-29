@@ -1,15 +1,16 @@
 ---
-title: "Walking SalURBAL Climate Proposal"
+title: "Walking SALURBAL-Climate Proposal"
 author:
   - name: Amanda Silva Magalhães
-    affiliation: Universidade Federal de Minas Gerais - Brazil
+    affiliation: Federal University of Minas Gerais - Brazil
   - name: Waleska Teixeira Caiaffa
-    affiliation: Universidade Federal de Minas Gerais - Brazil
+    affiliation: Federal University of Minas Gerais - Brazil
 
 date: today
 
 bibliography: references.bib
 ---
+
 
 # Setup
 
@@ -31,18 +32,22 @@ setwd("C:/Users/amand/Amanda/GitHub/walking")
 #| label: Libraries
 #| code-summary: Libraries
 
-pacman::p_load(
-  haven,
-  readxl,
-  dplyr,
-  tidyr,
-  stringr,
-  purrr,
-  ggplot2,
-  patchwork,
-  ggeffects,
-  grid,
-  magick
+pacman::p_load(# Data import
+               haven, readxl,
+               # Data manipulation
+               dplyr, tidyr, stringr, purrr,
+               # Data visualization
+               ggplot2, patchwork, ggeffects, grid, magick,
+               # Geospatial
+               sf, ggspatial, tidygeocoder, rnaturalearth,
+               # Statistical modeling
+               splines, glmmTMB, lme4, mgcv,
+               # Post-model-fitting
+               performance, DHARMa,
+               # Correlation
+               Hmisc, reshape2,
+               # Parallel computing
+               parallel, pbapply
 )
 ```
 
@@ -50,11 +55,256 @@ pacman::p_load(
 #| label: Data
 #| code-summary: Data
 
-walking <- haven::read_dta("walking.dta")
+dta <- haven::read_dta("walking.dta")
 ```
 
-# Introduction
 
-Text here.
+# Distribution of outcomes
 
-Example citation [@lee2022].
+Global walking levels differed across countries. Median walking was higher in Mexico and El Salvador and lower in Colombia and Guatemala. Greater variability was observed in Mexico and El Salvador, while extreme values were present in all countries.
+
+```{r}
+#| label: Global
+#| code-summary: Global
+
+dta %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala",
+      SV = "El Salvador",
+      MX = "Mexico"
+    )
+  ) %>%
+  ggplot(aes(x = iso2, y = svypawalk, fill = iso2)) +
+  geom_boxplot() +
+  scale_fill_manual(
+    values = c(
+      "Colombia" = "#F0BF21",
+      "Guatemala" = "#BCD5FF",
+      "El Salvador" = "#303B56",
+      "Mexico" = "#238179"
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 1500, by = 250)
+  ) +
+  labs(
+    x = "",
+    y = "Global walking (min/week) \n"
+  ) +
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position = "none"
+  )
+```
+
+Leisure walking levels were low in both countries, with median values close to zero. Greater variability and higher maximum values were observed in Colombia than in Guatemala.
+
+```{r}
+#| label: Leisure
+#| code-summary: Leisure
+
+dta %>%
+  filter(iso2 %in% c("CO", "GT")) %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala"
+    )
+  ) %>%
+  ggplot(aes(x = iso2, y = svypawlei, fill = iso2)) +
+  geom_boxplot() +
+  scale_fill_manual(
+    values = c(
+      "Colombia" = "#F0BF21",
+      "Guatemala" = "#BCD5FF"
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 1500, by = 250)
+  ) +
+  labs(
+    x = "",
+    y = "Leisure walking (min/week) \n"
+  ) +
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position = "none"
+  )
+```
+
+Transportation walking levels were higher in Colombia than in Guatemala, as indicated by a higher median value. Greater variability and higher maximum values were also observed in Colombia.
+
+```{r}
+#| label: Transportation
+#| code-summary: Transportation
+
+dta %>%
+  filter(iso2 %in% c("CO", "GT")) %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala"
+    )
+  ) %>%
+  ggplot(aes(x = iso2, y = svypawtrn, fill = iso2)) +
+  geom_boxplot() +
+  scale_fill_manual(
+    values = c(
+      "Colombia" = "#F0BF21",
+      "Guatemala" = "#BCD5FF"
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 1500, by = 250)
+  ) +
+  labs(
+    x = "",
+    y = "Transportation walking (min/week) \n"
+  ) +
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position = "none"
+  )
+```
+
+# Distribution of exposure
+
+The distribution of mean temperature during the week preceding the interview varied across countries. Guatemala and El Salvador showed relatively narrow temperature ranges, whereas Colombia and Mexico exhibited greater variability and a wider distribution of temperatures. Histogram frequencies represent the number of individuals interviewed within each temperature interval.
+
+```{r}
+#| label: Histogram
+#| code-summary: Histogram
+
+dta %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala",
+      SV = "El Salvador",
+      MX = "Mexico"
+    )
+  ) %>%
+  ggplot(aes(x = l1adtemp_pw_1_7_mean)) +
+  geom_histogram(
+    binwidth = 1,
+    fill = "#4666A0",
+    color = "white"
+  ) +
+  facet_wrap(~ iso2, scales = "free_y") +
+  scale_x_continuous(
+    breaks = seq(0, 35, by = 5)
+  ) +
+  labs(
+    x = "\n Mean temperature (°C)",
+    y = "Frequency \n"
+  ) +
+  theme_minimal(base_size = 18)
+```
+
+```{r}
+#| label: Boxplot
+#| code-summary: Boxplot
+
+dta %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala",
+      SV = "El Salvador",
+      MX = "Mexico"
+    )
+  ) %>%
+  ggplot(aes(x = iso2, y = l1adtemp_pw_1_7_mean, fill = iso2)) +
+  geom_boxplot() +
+  scale_fill_manual(
+    values = c(
+      "Colombia" = "#F0BF21",
+      "Guatemala" = "#BCD5FF",
+      "El Salvador" = "#303B56",
+      "Mexico" = "#238179"
+    )
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 35, by = 5)
+  ) +
+  labs(
+    x = "",
+    y = "Mean temperature (°C) \n"
+  ) +
+  theme_minimal(base_size = 18) +
+  theme(
+    legend.position = "none"
+  )
+```
+
+# Outcome by exposure
+
+All walking domains showed a non-linear association with mean temperature during the week preceding the interview. These exploratory analyses were restricted to participants reporting more than 0 min/week of walking to focus on variation among individuals who engaged in walking activities.
+
+```{r}
+#| label: Global by temperature
+#| code-summary: Global by temperature
+
+dta %>%
+  filter(svypawalk > 0) %>%
+  ggplot(
+    aes(
+      x = l1adtemp_pw_1_7_mean,
+      y = svypawalk
+    )
+  ) +
+  geom_smooth(se = TRUE) +
+  labs(
+    x = "\n Mean temperature (°C)",
+    y = "Global walking (min/week) \n"
+  ) +
+  theme_minimal(base_size = 18)
+```
+
+```{r}
+#| label: Leisure by temperature
+#| code-summary: Leisure by temperature
+
+dta %>%
+  filter(svypawlei > 0) %>%
+  ggplot(
+    aes(
+      x = l1adtemp_pw_1_7_mean,
+      y = svypawlei
+    )
+  ) +
+  geom_smooth(se = TRUE) +
+  labs(
+    x = "\n Mean temperature (°C)",
+    y = "Leisure walking (min/week) \n"
+  ) +
+  theme_minimal(base_size = 18)
+```
+
+```{r}
+#| label: Transportation by temperature
+#| code-summary: Transportation by temperature
+
+dta %>%
+  filter(svypawtrn > 0) %>%
+  ggplot(
+    aes(
+      x = l1adtemp_pw_1_7_mean,
+      y = svypawtrn
+    )
+  ) +
+  geom_smooth(se = TRUE) +
+  labs(
+    x = "\n Mean temperature (°C)",
+    y = "Transportation walking (min/week) \n"
+  ) +
+  theme_minimal(base_size = 18)
+```
+
