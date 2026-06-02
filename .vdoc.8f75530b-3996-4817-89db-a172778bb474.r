@@ -1,35 +1,35 @@
----
-title: "Walking SALURBAL-Climate Proposal"
-author:
-  - name: Amanda Silva Magalhães
-    affiliation: Federal University of Minas Gerais - Brazil
-  - name: Amanda Cristina de Souza Andrade
-    affiliation: René Rachou Institute, Oswaldo Cruz Foundation - Brazil 
-  - name: Waleska Teixeira Caiaffa
-    affiliation: Federal University of Minas Gerais - Brazil
-
-date: today
-
-bibliography: references.bib
----
-
-
-
-# Setup
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| label: Clean environment
 #| code-summary: Clean environment
 rm(list = ls())
-```
-
-```{r}
+#
+#
+#
 #| label: Directory
 #| code-summary: Directory
 setwd("C:/Users/amand/Amanda/GitHub/walking")
-```
-
-```{r}
+#
+#
+#
 #| label: Libraries
 #| code-summary: Libraries
 pacman::p_load(
@@ -61,24 +61,24 @@ pacman::p_load(
   patchwork,
   corrplot
 )
-```
-
-```{r}
+#
+#
+#
 #| label: Data
 #| code-summary: Data
 dta <- haven::read_dta("walking.dta")
-```
-
-
-
-# Distribution of outcomes
-
-
-## Global walking
-
-Global walking levels differed across countries. Median walking was higher in Mexico and El Salvador and lower in Colombia and Guatemala. Greater variability was observed in Mexico and El Salvador, while extreme values were present in all countries. Histogram frequencies represent the number of individuals interviewed within each walking duration (min/week) interval.
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| label: Histogram global
 #| code-summary: Histogram global
 dta %>%
@@ -103,9 +103,9 @@ dta %>%
     y = "Frequency\n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-```{r}
+#
+#
+#
 #| label: Boxplot global
 #| code-summary: Boxplot global
 dta %>%
@@ -139,13 +139,13 @@ dta %>%
   theme(
     legend.position = "none"
   )
-```
-
-## Leisure walking
-
-Leisure walking levels were low in both countries, with median values close to zero. Greater variability and higher maximum values were observed in Colombia than in Guatemala. Histogram frequencies represent the number of individuals interviewed within each walking duration (min/week) interval.
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
 #| label: Histogram leisure
 #| code-summary: Histogram leisure
 dta %>%
@@ -169,9 +169,9 @@ dta %>%
     y = "Frequency\n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-```{r}
+#
+#
+#
 #| label: Boxplot leisure
 #| code-summary: Boxplot leisure
 dta %>%
@@ -202,13 +202,13 @@ dta %>%
   theme(
     legend.position = "none"
   )
-```
-
-## Transportation walking
-
-Transportation walking levels were higher in Colombia than in Guatemala, as indicated by a higher median value. Greater variability and higher maximum values were also observed in Colombia. Histogram frequencies represent the number of individuals interviewed within each walking duration (min/week) interval.
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
 #| label: Histogram transportation
 #| code-summary: Histogram transportation
 dta %>%
@@ -232,9 +232,9 @@ dta %>%
     y = "Frequency\n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-```{r}
+#
+#
+#
 #| label: Boxplot transportation
 #| code-summary: Boxplot transportation
 dta %>%
@@ -265,15 +265,15 @@ dta %>%
   theme(
     legend.position = "none"
   )
-```
-
-
-
-# Distribution of exposure
-
-The distribution of mean temperature during the week prior to the interview varied across countries. Guatemala and El Salvador showed relatively narrow temperature ranges, whereas Colombia and Mexico exhibited greater variability and a wider distribution of temperatures. Histogram frequencies represent the number of individuals interviewed within each temperature interval.
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| label: Histogram temperature
 #| code-summary: Histogram temperature
 dta %>%
@@ -301,9 +301,9 @@ dta %>%
     y = "Frequency \n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-```{r}
+#
+#
+#
 #| label: Boxplot temperature
 #| code-summary: Boxplot temperature
 dta %>%
@@ -337,15 +337,15 @@ dta %>%
   theme(
     legend.position = "none"
   )
-```
-
-
-
-# Outcome by exposure
-
-All walking domains showed a non-linear association with mean temperature during the week prior to the interview. These exploratory analyses were restricted to participants reporting more than 0 min/week of walking to focus on variation among individuals who engaged in walking activities.
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| label: Global by temperature
 #| code-summary: Global by temperature
 dta %>%
@@ -362,9 +362,9 @@ dta %>%
     y = "Global walking (min/week) \n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-```{r}
+#
+#
+#
 #| label: Leisure by temperature
 #| code-summary: Leisure by temperature
 dta %>%
@@ -381,9 +381,9 @@ dta %>%
     y = "Leisure walking (min/week) \n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-```{r}
+#
+#
+#
 #| label: Transportation by temperature
 #| code-summary: Transportation by temperature
 dta %>%
@@ -400,13 +400,13 @@ dta %>%
     y = "Transportation walking (min/week) \n"
   ) +
   theme_minimal(base_size = 14)
-```
-
-
-
-# Tabel 1
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
 #| label: Functions
 #| code-summary: Functions
 make_continuous_table <- function(data, variable, label, digits = 1) {
@@ -521,9 +521,9 @@ make_categorical_table <- function(data, variable, label) {
       .
     )
 }
-```
-
-```{r}
+#
+#
+#
 #| label: Context
 #| code-summary: Context
 # Number of cities
@@ -602,9 +602,9 @@ context_table <- bind_rows(
 )
 context_table <- context_table %>%
   mutate(Domain = "Context")
-```
-
-```{r}
+#
+#
+#
 #| label: Individual-level
 #| code-summary: Individual-level
 # Recoding categorical variables
@@ -757,9 +757,9 @@ individual_table <- bind_rows(
   mutate(
     Domain = "Individual-level"
   )
-```
-
-```{r}
+#
+#
+#
 #| label: Natural environment
 #| code-summary: Natural environment
 # Mean temperature
@@ -916,9 +916,9 @@ natural_table <- bind_rows(
 )
 natural_table <- natural_table %>%
   mutate(Domain = "Natural environment")
-```
-
-```{r}
+#
+#
+#
 #| label: Built environment
 #| code-summary: Built environment
 # Presence of a BRT
@@ -1075,9 +1075,9 @@ built_table <- bind_rows(
 )
 built_table <- built_table %>%
   mutate(Domain = "Built environment")
-```
-
-```{r}
+#
+#
+#
 #| label: Social environment
 #| code-summary: Social environment
 # Social environment index
@@ -1099,9 +1099,9 @@ social_table <- make_continuous_table(
 )
 social_table <- social_table %>%
   mutate(Domain = "Social environment")
-```
-
-```{r}
+#
+#
+#
 #| label: Table 1
 #| code-summary: Table 1
 table1 <- bind_rows(
@@ -1194,13 +1194,13 @@ table1 %>%
     data_row.padding = px(3),
     row_group.font.weight = "bold"
   )
-```
-
-
-
-# Knots
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
 #| label: Knots overall
 #| code-summary: Knots overall
 #| results: hide
@@ -1250,9 +1250,9 @@ pred_knots_domain <- quantile(
   na.rm = TRUE
 )
 pred_knots_domain
-```
-
-```{r}
+#
+#
+#
 #| label: Knots by country
 #| code-summary: Knots by country
 #| results: hide
@@ -1287,13 +1287,13 @@ pred_knots_domain_country <- lapply(countries, function(ctry) {
 })
 names(pred_knots_domain_country) <- countries
 pred_knots_domain_country
-```
-
-
-
-# Center year and standardize continuous covariates
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
 #| label: Center year and standardize continuous covariates
 #| code-summary: Center year and standardize continuous covariates
 #| results: hide
@@ -1327,17 +1327,17 @@ dta[paste0(vars_to_scale, "_scaled")] <- lapply(
   dta[vars_to_scale],
   function(x) as.numeric(scale(x))
 )
-```
-
-
-
-# Model selection
-
-Compare Poisson, negative binomial, and zero-inflated models
-
-## Global walking
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| label: Model selection global
 #| code-summary: Model selection global
 # Poisson
@@ -1424,11 +1424,11 @@ AIC(
   M0_global_zinb1,
   M0_global_zinb2
 )
-```
-
-## Leisure walking
-
-```{r}
+#
+#
+#
+#
+#
 #| label: Model selection leisure
 #| code-summary: Model selection leisure
 # Poisson
@@ -1515,11 +1515,11 @@ AIC(
   M0_lei_zinb1,
   M0_lei_zinb2
 )
-```
-
-## Transportation walking
-
-```{r}
+#
+#
+#
+#
+#
 #| label: Model selection transportation
 #| code-summary: Model selection transportation
 # Poisson
@@ -1606,13 +1606,13 @@ AIC(
   M0_trn_zinb1,
   M0_trn_zinb2
 )
-```
-
-
-
-# Knots sensitivity analysis
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
 #| label: Function
 #| code-summary: Function
 
@@ -1684,9 +1684,9 @@ run_knot_sensitivity <- function(
     )
   return(results)
 }
-```
-
-```{r}
+#
+#
+#
 #| label: Parallel setup
 #| code-summary: Parallel setup
 
@@ -1704,9 +1704,9 @@ clusterEvalQ(cl, {
   library(glmmTMB)
   library(splines)
 })
-```
-
-```{r}
+#
+#
+#
 #| label: Knots global
 #| code-summary: Knots global
 
@@ -1717,9 +1717,9 @@ results_global <- run_knot_sensitivity(
   dta = dta,
   cl = cl
 )
-```
-
-```{r}
+#
+#
+#
 #| label: Knots leisure
 #| code-summary: Knots leisure
 
@@ -1730,9 +1730,9 @@ results_lei <- run_knot_sensitivity(
   dta = dta,
   cl = cl
 )
-```
-
-```{r}
+#
+#
+#
 #| label: Knots transportation
 #| code-summary: Knots transportation
 
@@ -1743,43 +1743,27 @@ results_trn <- run_knot_sensitivity(
   dta = dta,
   cl = cl
 )
-```
-
-```{r}
-#| label: Knots output
-#| code-summary: Knots output
-
-# Stop cluster
-stopCluster(cl)
-
-# Combine results
-all_results <- bind_rows(
-  results_global,
-  results_lei,
-  results_trn
-) %>%
-  arrange(
-    outcome,
-    delta_AIC
-  )
-
-# Save results
-write.table(
-  all_results,
-  file = "knot_sensitivity_results.txt",
-  sep = "\t",
-  row.names = FALSE,
-  quote = FALSE
-)
-```
+#
+#
+#
+#| label: Save knot sensitivity results
+#| code-summary: Save knot sensitivity results
 
 
-
-# Base models
-
-## Global walking
-
-```{r}
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 #| label: Base model global
 #| code-summary: Base model global
 M1_global_zinb2 <- glmmTMB(
@@ -1795,9 +1779,9 @@ M1_global_zinb2 <- glmmTMB(
 )
 
 summary(M1_global_zinb2)
-```
-
-```{r}
+#
+#
+#
 #| label: IRR table global
 #| code-summary: IRR table global
 # Generate predictions across the full temperature range
@@ -1865,9 +1849,9 @@ irr_global_table <- lapply(
   )
 
 irr_global_table
-```
-
-```{r}
+#
+#
+#
 #| label: Curve global
 #| code-summary: Curve global
 ggplot(
@@ -1900,11 +1884,11 @@ ggplot(
     y = "Incidence Rate Ratio (IRR)"
   ) +
   theme_minimal()
-```
-
-## Leisure walking
-
-```{r}
+#
+#
+#
+#
+#
 #| label: Base model leisure
 #| code-summary: Base model leisure
 M1_lei_zinb2 <- glmmTMB(
@@ -1920,9 +1904,9 @@ M1_lei_zinb2 <- glmmTMB(
 )
 
 summary(M1_lei_zinb2)
-```
-
-```{r}
+#
+#
+#
 #| label: IRR table leisure
 #| code-summary: IRR table leisure
 pred_lei <- ggpredict(
@@ -1981,9 +1965,9 @@ irr_lei_table <- lapply(
   )
 
 irr_lei_table
-```
-
-```{r}
+#
+#
+#
 #| label: Curve leisure
 #| code-summary: Curve leisure
 ggplot(
@@ -2016,11 +2000,11 @@ ggplot(
     y = "Incidence Rate Ratio (IRR)"
   ) +
   theme_minimal()
-```
-
-## Transportation walking
-
-```{r}
+#
+#
+#
+#
+#
 #| label: Base model transportation
 #| code-summary: Base model transportation
 M1_trn_zinb2 <- glmmTMB(
@@ -2036,9 +2020,9 @@ M1_trn_zinb2 <- glmmTMB(
 )
 
 summary(M1_trn_zinb2)
-```
-
-```{r}
+#
+#
+#
 #| label: IRR table transportation
 #| code-summary: IRR table transportation
 pred_trn <- ggpredict(
@@ -2097,9 +2081,9 @@ irr_trn_table <- lapply(
   )
 
 irr_trn_table
-```
-
-```{r}
+#
+#
+#
 #| label: Curve transportation
 #| code-summary: Curve transportation
 ggplot(
@@ -2132,4 +2116,6 @@ ggplot(
     y = "Incidence Rate Ratio (IRR)"
   ) +
   theme_minimal()
-```
+#
+#
+#
