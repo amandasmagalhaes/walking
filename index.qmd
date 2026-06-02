@@ -1106,3 +1106,134 @@ table1 %>%
     row_group.font.weight = "bold"
   )
 ```
+
+
+
+# Knots
+
+```{r}
+#| label: Knots overall
+#| code-summary: Knots overall
+#| results: hide
+
+# Define candidate knot locations
+k1_vals <- seq(0.10, 0.25, by = 0.05)
+k2_vals <- seq(0.50, 0.75, by = 0.05)
+k3_vals <- seq(0.85, 0.95, by = 0.05)
+knot_options <- list()
+for (k1 in k1_vals) {
+  for (k2 in k2_vals) {
+    for (k3 in k3_vals) {
+      if (k1 < k2 & k2 < k3) {
+        knot_options[[length(knot_options) + 1]] <- c(k1, k2, k3)
+      }
+    }
+  }
+}
+names(knot_options) <- sapply(knot_options, function(x) {
+  paste0(
+    "k_",
+    sprintf("%02d", round(x[1] * 100)), "_",
+    sprintf("%02d", round(x[2] * 100)), "_",
+    sprintf("%02d", round(x[3] * 100))
+  )
+})
+
+# Global walking
+pred_knots_global <- quantile(
+  dta$l1adtemp_pw_1_7_mean[
+    !is.na(dta$svypawalk) &
+      !is.na(dta$l1adtemp_pw_1_7_mean)
+  ],
+  probs = c(0.25, 0.75, 0.95),
+  na.rm = TRUE
+)
+pred_knots_global
+
+# Leisure and transportation walking
+pred_knots_domain <- quantile(
+  dta$l1adtemp_pw_1_7_mean[
+    (!is.na(dta$svypawlei) | !is.na(dta$svypawtrn)) &
+      !is.na(dta$l1adtemp_pw_1_7_mean)
+  ],
+  probs = c(0.25, 0.75, 0.95),
+  na.rm = TRUE
+)
+pred_knots_domain
+```
+
+```{r}
+#| label: Knots by country
+#| code-summary: Knots by country
+#| results: hide
+
+countries <- sort(unique(na.omit(dta$iso2)))
+
+# Global walking
+pred_knots_global_country <- lapply(countries, function(ctry) {
+  quantile(
+    dta$l1adtemp_pw_1_7_mean[
+      dta$iso2 == ctry &
+        !is.na(dta$svypawalk) &
+        !is.na(dta$l1adtemp_pw_1_7_mean)
+    ],
+    probs = c(0.25, 0.75, 0.95),
+    na.rm = TRUE
+  )
+})
+names(pred_knots_global_country) <- countries
+pred_knots_global_country
+
+# Leisure and transportation walking
+pred_knots_domain_country <- lapply(countries, function(ctry) {
+  quantile(
+    dta$l1adtemp_pw_1_7_mean[
+      dta$iso2 == ctry &
+        (!is.na(dta$svypawlei) | !is.na(dta$svypawtrn)) &
+        !is.na(dta$l1adtemp_pw_1_7_mean)
+    ],
+    probs = c(0.25, 0.75, 0.95),
+    na.rm = TRUE
+  )
+})
+names(pred_knots_domain_country) <- countries
+pred_knots_domain_country
+```
+
+
+
+# Center year and standardize continuous covariates
+
+```{r}
+#| label: Center year and standardize continuous covariates
+#| code-summary: Center year and standardize continuous covariates
+#| results: hide
+
+# Center year so that the first study year equals zero
+dta$year_c <- dta$year - min(dta$year, na.rm = TRUE)
+unique_years <- unique(
+  st_drop_geometry(dta)[, c("year", "year_c")]
+)
+unique_years <- unique_years[
+  order(unique_years$year),
+]
+print(unique_years)
+
+## Standardize continuous covariates (mean = 0, SD = 1)
+vars_to_scale <- c(
+  "svyage",
+  "becmedndvinwl2",
+  "becpcturbanl1ad",
+  "becpopdensl2",
+  "becadintdensl2",
+  "becparknumpercapl2",
+  "cnssei_l1ad"
+)
+dta[paste0(vars_to_scale, "_scaled")] <- lapply(
+  dta[vars_to_scale],
+  function(x) as.numeric(scale(x))
+)
+```
+
+
+
