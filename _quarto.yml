@@ -1,5 +1,6 @@
 project:
   type: website
+  output-dir: docs
 
 website:
   title: "Walking SALURBAL-Climate Proposal"
@@ -14,7 +15,7 @@ format:
     code-fold: true
     smooth-scroll: true
     anchor-sections: true
-    page-layout: article
+    page-layout: full
 
 execute:
   freeze: auto
