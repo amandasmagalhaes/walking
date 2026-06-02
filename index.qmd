@@ -70,11 +70,41 @@ dta <- haven::read_dta("walking.dta")
 
 # Distribution of outcomes
 
-Global walking levels differed across countries. Median walking was higher in Mexico and El Salvador and lower in Colombia and Guatemala. Greater variability was observed in Mexico and El Salvador, while extreme values were present in all countries.
+
+## Global walking
+
+Global walking levels differed across countries. Median walking was higher in Mexico and El Salvador and lower in Colombia and Guatemala. Greater variability was observed in Mexico and El Salvador, while extreme values were present in all countries. Histogram frequencies represent the number of individuals interviewed within each walking duration (min/week) interval.
 
 ```{r}
-#| label: Global
-#| code-summary: Global
+#| label: Histogram global
+#| code-summary: Histogram global
+dta %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala",
+      SV = "El Salvador",
+      MX = "Mexico"
+    )
+  ) %>%
+  ggplot(aes(x = svypawalk)) +
+  geom_histogram(
+    binwidth = 30,
+    fill = "#4666A0",
+    color = "white"
+  ) +
+  facet_wrap(~iso2, scales = "free_y") +
+  labs(
+    x = "\nGlobal walking (min/week)",
+    y = "Frequency\n"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+```{r}
+#| label: Boxplot global
+#| code-summary: Boxplot global
 dta %>%
   mutate(
     iso2 = recode(
@@ -108,11 +138,39 @@ dta %>%
   )
 ```
 
-Leisure walking levels were low in both countries, with median values close to zero. Greater variability and higher maximum values were observed in Colombia than in Guatemala.
+## Leisure walking
+
+Leisure walking levels were low in both countries, with median values close to zero. Greater variability and higher maximum values were observed in Colombia than in Guatemala. Histogram frequencies represent the number of individuals interviewed within each walking duration (min/week) interval.
 
 ```{r}
-#| label: Leisure
-#| code-summary: Leisure
+#| label: Histogram leisure
+#| code-summary: Histogram leisure
+dta %>%
+  filter(iso2 %in% c("CO", "GT")) %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala"
+    )
+  ) %>%
+  ggplot(aes(x = svypawlei)) +
+  geom_histogram(
+    binwidth = 30,
+    fill = "#4666A0",
+    color = "white"
+  ) +
+  facet_wrap(~iso2, scales = "free_y") +
+  labs(
+    x = "\nLeisure walking (min/week)",
+    y = "Frequency\n"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+```{r}
+#| label: Boxplot leisure
+#| code-summary: Boxplot leisure
 dta %>%
   filter(iso2 %in% c("CO", "GT")) %>%
   mutate(
@@ -143,11 +201,39 @@ dta %>%
   )
 ```
 
-Transportation walking levels were higher in Colombia than in Guatemala, as indicated by a higher median value. Greater variability and higher maximum values were also observed in Colombia.
+## Transportation walking
+
+Transportation walking levels were higher in Colombia than in Guatemala, as indicated by a higher median value. Greater variability and higher maximum values were also observed in Colombia. Histogram frequencies represent the number of individuals interviewed within each walking duration (min/week) interval.
 
 ```{r}
-#| label: Transportation
-#| code-summary: Transportation
+#| label: Histogram transportation
+#| code-summary: Histogram transportation
+dta %>%
+  filter(iso2 %in% c("CO", "GT")) %>%
+  mutate(
+    iso2 = recode(
+      iso2,
+      CO = "Colombia",
+      GT = "Guatemala"
+    )
+  ) %>%
+  ggplot(aes(x = svypawtrn)) +
+  geom_histogram(
+    binwidth = 30,
+    fill = "#4666A0",
+    color = "white"
+  ) +
+  facet_wrap(~iso2, scales = "free_y") +
+  labs(
+    x = "\nTransportation walking (min/week)",
+    y = "Frequency\n"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+```{r}
+#| label: Boxplot transportation
+#| code-summary: Boxplot transportation
 dta %>%
   filter(iso2 %in% c("CO", "GT")) %>%
   mutate(
@@ -185,8 +271,8 @@ dta %>%
 The distribution of mean temperature during the week prior to the interview varied across countries. Guatemala and El Salvador showed relatively narrow temperature ranges, whereas Colombia and Mexico exhibited greater variability and a wider distribution of temperatures. Histogram frequencies represent the number of individuals interviewed within each temperature interval.
 
 ```{r}
-#| label: Histogram
-#| code-summary: Histogram
+#| label: Histogram temperature
+#| code-summary: Histogram temperature
 dta %>%
   mutate(
     iso2 = recode(
@@ -215,8 +301,8 @@ dta %>%
 ```
 
 ```{r}
-#| label: Boxplot
-#| code-summary: Boxplot
+#| label: Boxplot temperature
+#| code-summary: Boxplot temperature
 dta %>%
   mutate(
     iso2 = recode(
