@@ -2,15 +2,14 @@
 _freeze/
 _site/
 .quarto/
-.index_cache/
+index_cache/
+index_files/
 
 # Data
 *.dta
 *.csv
 *.RData
 
-# R
-.Rhistory
-.Ruserdata
+# Outros
 /.quarto/
 **/*.quarto_ipynb
