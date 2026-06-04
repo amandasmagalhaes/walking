@@ -99,8 +99,8 @@ dta %>%
   ) +
   facet_wrap(~iso2, scales = "free_y") +
   labs(
-    x = "\nGlobal walking (min/week)",
-    y = "Frequency\n"
+    x = "\n Global walking (min/week)",
+    y = "Frequency \n"
   ) +
   theme_minimal(base_size = 14)
 ```
@@ -165,8 +165,8 @@ dta %>%
   ) +
   facet_wrap(~iso2, scales = "free_y") +
   labs(
-    x = "\nLeisure walking (min/week)",
-    y = "Frequency\n"
+    x = "\n Leisure walking (min/week)",
+    y = "Frequency \n"
   ) +
   theme_minimal(base_size = 14)
 ```
@@ -228,8 +228,8 @@ dta %>%
   ) +
   facet_wrap(~iso2, scales = "free_y") +
   labs(
-    x = "\nTransportation walking (min/week)",
-    y = "Frequency\n"
+    x = "\n Transportation walking (min/week)",
+    y = "Frequency \n"
   ) +
   theme_minimal(base_size = 14)
 ```
@@ -343,7 +343,64 @@ dta %>%
 
 # Outcome by exposure
 
-All walking domains showed a non-linear association with mean temperature during the week prior to the interview. These exploratory analyses were restricted to participants reporting more than 0 min/week of walking to focus on variation among individuals who engaged in walking activities.
+All walking domains showed an apparent non-linear association with mean temperature during the week prior to the interview. These exploratory analyses were restricted to participants reporting more than 0 min/week of walking to focus on variation among individuals who engaged in walking activities.
+
+```{r}
+#| label: Histogram temperature by outcome
+#| code-summary: Histogram temperature by outcome
+temp_global <- dta %>%
+  filter(
+    !is.na(svypawalk),
+    !is.na(l1adtemp_pw_1_7_mean)
+  ) %>%
+  transmute(
+    outcome = "Global walking \n",
+    temperature = l1adtemp_pw_1_7_mean
+  )
+temp_lei <- dta %>%
+  filter(
+    !is.na(svypawlei),
+    !is.na(l1adtemp_pw_1_7_mean)
+  ) %>%
+  transmute(
+    outcome = "Leisure walking \n",
+    temperature = l1adtemp_pw_1_7_mean
+  )
+temp_trn <- dta %>%
+  filter(
+    !is.na(svypawtrn),
+    !is.na(l1adtemp_pw_1_7_mean)
+  ) %>%
+  transmute(
+    outcome = "Transportation walking \n",
+    temperature = l1adtemp_pw_1_7_mean
+  )
+bind_rows(
+  temp_global,
+  temp_lei,
+  temp_trn
+) %>%
+  ggplot(
+    aes(x = temperature)
+  ) +
+  geom_histogram(
+    binwidth = 1,
+    fill = "#4666A0",
+    color = "white"
+  ) +
+  facet_wrap(
+    ~outcome,
+    scales = "free_y"
+  ) +
+  scale_x_continuous(
+    breaks = seq(0, 35, by = 5)
+  ) +
+  labs(
+    x = "\n Mean temperature (°C)",
+    y = "Frequency \n"
+  ) +
+  theme_minimal(base_size = 14)
+```
 
 ```{r}
 #| label: Global by temperature
@@ -543,14 +600,12 @@ n_cities <- dta %>%
     Characteristic = "Number of cities"
   ) %>%
   select(Characteristic, iso2, value)
-
 # Participants per city
 participants_city <- make_continuous_table(
   data = dta %>% filter(!is.na(salid1)),
   variable = "salid1_obs",
   label = "Participants per city"
 )
-
 # Number of sub-cities
 n_subcities <- dta %>%
   filter(salid2_tag == 1) %>%
@@ -567,14 +622,12 @@ n_subcities <- dta %>%
     Characteristic = "Number of sub-cities"
   ) %>%
   select(Characteristic, iso2, value)
-
 # Participants per sub-city
 participants_subcity <- make_continuous_table(
   data = dta %>% filter(!is.na(salid2)),
   variable = "salid2_obs",
   label = "Participants per sub-city"
 )
-
 # Number of participants
 n_participants <- dta %>%
   count(iso2, name = "n") %>%
@@ -591,7 +644,6 @@ n_participants <- dta %>%
     Characteristic = "Number of participants, n (%)"
   ) %>%
   select(Characteristic, iso2, value)
-
 # Context table
 context_table <- bind_rows(
   n_cities,
@@ -645,7 +697,6 @@ dta <- dta %>%
       labels = c("Inactive", "Active")
     )
   )
-
 # Age
 age_total <- dta %>%
   summarise(
@@ -688,21 +739,18 @@ age_table <- bind_rows(
     ) %>%
     select(Characteristic, iso2, value)
 )
-
 # Sex
 sex_table <- make_categorical_table(
   dta,
   "svymale",
   "Sex, n (%)"
 )
-
 # Educational level
 education_table <- make_categorical_table(
   dta,
   "svyedu",
   "Educational level, n (%)"
 )
-
 # Global walking
 global_walk <- make_continuous_table(
   dta,
@@ -715,7 +763,6 @@ global_walk_cat <- make_categorical_table(
   "svypawalkcat",
   "Global walking, n (%)"
 )
-
 # Leisure walking
 leisure_walk <- make_continuous_table(
   dta,
@@ -728,7 +775,6 @@ leisure_walk_cat <- make_categorical_table(
   "svypawleicat",
   "Leisure walking, n (%)"
 )
-
 # Transportation walking
 transport_walk <- make_continuous_table(
   dta,
@@ -741,7 +787,6 @@ transport_walk_cat <- make_categorical_table(
   "svypawtrncat",
   "Transportation walking, n (%)"
 )
-
 # Final individual-level table
 individual_table <- bind_rows(
   age_table,
@@ -818,7 +863,6 @@ temperature_table <- bind_rows(
     ) %>%
     select(Characteristic, iso2, value)
 )
-
 # Climate zone
 dta <- dta %>%
   mutate(
@@ -889,7 +933,6 @@ climate_table <- bind_rows(
   climate_total,
   climate_by_iso2
 )
-
 # Greenness
 greenness_subcity <- dta %>%
   filter(!is.na(salid2)) %>%
@@ -907,7 +950,6 @@ greenness_table <- make_continuous_table(
   "Greenness",
   digits = 1
 )
-
 # Final natural environment table
 natural_table <- bind_rows(
   temperature_table,
@@ -992,7 +1034,6 @@ brt_table <- bind_rows(
   brt_total,
   brt_by_iso2
 )
-
 # Percentage of urban area
 urban_area_city <- dta %>%
   filter(!is.na(salid1)) %>%
@@ -1010,7 +1051,6 @@ urban_area_table <- make_continuous_table(
   "Percentage of urban area",
   digits = 1
 )
-
 # Population density
 population_density_subcity <- dta %>%
   filter(!is.na(salid2)) %>%
@@ -1028,7 +1068,6 @@ population_density_table <- make_continuous_table(
   "Population density",
   digits = 0
 )
-
 # Intersection density
 intersection_density_subcity <- dta %>%
   filter(!is.na(salid2)) %>%
@@ -1046,7 +1085,6 @@ intersection_density_table <- make_continuous_table(
   "Intersection density",
   digits = 1
 )
-
 # Parks density
 parks_density_subcity <- dta %>%
   filter(!is.na(salid2)) %>%
@@ -1064,7 +1102,6 @@ parks_density_table <- make_continuous_table(
   "Parks density",
   digits = 1
 )
-
 # Final built environment table
 built_table <- bind_rows(
   brt_table,
@@ -1205,9 +1242,9 @@ table1 %>%
 #| code-summary: Knots overall
 #| results: hide
 # Define candidate knot locations
-k1_vals <- seq(0.10, 0.25, by = 0.05)
-k2_vals <- seq(0.50, 0.75, by = 0.05)
-k3_vals <- seq(0.85, 0.95, by = 0.05)
+k1_vals <- c(0.10, 0.15, 0.25)
+k2_vals <- c(0.50, 0.60, 0.75)
+k3_vals <- c(0.85, 0.90, 0.95)
 knot_options <- list()
 for (k1 in k1_vals) {
   for (k2 in k2_vals) {
@@ -1228,28 +1265,36 @@ names(knot_options) <- sapply(knot_options, function(x) {
     sprintf("%02d", round(x[3] * 100))
   )
 })
-
 # Global walking
 pred_knots_global <- quantile(
   dta$l1adtemp_pw_1_7_mean[
     !is.na(dta$svypawalk) &
       !is.na(dta$l1adtemp_pw_1_7_mean)
   ],
-  probs = c(0.25, 0.75, 0.95),
+  probs = c(0.25, 0.60, 0.85),
   na.rm = TRUE
 )
 pred_knots_global
-
-# Leisure and transportation walking
-pred_knots_domain <- quantile(
+# Leisure walking
+pred_knots_lei <- quantile(
   dta$l1adtemp_pw_1_7_mean[
-    (!is.na(dta$svypawlei) | !is.na(dta$svypawtrn)) &
+    !is.na(dta$svypawlei) &
       !is.na(dta$l1adtemp_pw_1_7_mean)
   ],
   probs = c(0.25, 0.75, 0.95),
   na.rm = TRUE
 )
-pred_knots_domain
+pred_knots_lei
+# Transportation walking
+pred_knots_trn <- quantile(
+  dta$l1adtemp_pw_1_7_mean[
+    !is.na(dta$svypawtrn) &
+      !is.na(dta$l1adtemp_pw_1_7_mean)
+  ],
+  probs = c(0.10, 0.50, 0.85),
+  na.rm = TRUE
+)
+pred_knots_trn
 ```
 
 ```{r}
@@ -1266,27 +1311,41 @@ pred_knots_global_country <- lapply(countries, function(ctry) {
         !is.na(dta$svypawalk) &
         !is.na(dta$l1adtemp_pw_1_7_mean)
     ],
-    probs = c(0.25, 0.75, 0.95),
+    probs = c(0.25, 0.60, 0.85),
     na.rm = TRUE
   )
 })
 names(pred_knots_global_country) <- countries
 pred_knots_global_country
 
-# Leisure and transportation walking
-pred_knots_domain_country <- lapply(countries, function(ctry) {
+# Leisure walking
+pred_knots_lei_country <- lapply(countries, function(ctry) {
   quantile(
     dta$l1adtemp_pw_1_7_mean[
       dta$iso2 == ctry &
-        (!is.na(dta$svypawlei) | !is.na(dta$svypawtrn)) &
+        !is.na(dta$svypawlei) &
         !is.na(dta$l1adtemp_pw_1_7_mean)
     ],
     probs = c(0.25, 0.75, 0.95),
     na.rm = TRUE
   )
 })
-names(pred_knots_domain_country) <- countries
-pred_knots_domain_country
+names(pred_knots_lei_country) <- countries
+pred_knots_lei_country
+# Transportation walking
+pred_knots_trn_country <- lapply(countries, function(ctry) {
+  quantile(
+    dta$l1adtemp_pw_1_7_mean[
+      dta$iso2 == ctry &
+        !is.na(dta$svypawtrn) &
+        !is.na(dta$l1adtemp_pw_1_7_mean)
+    ],
+    probs = c(0.10, 0.50, 0.85),
+    na.rm = TRUE
+  )
+})
+names(pred_knots_trn_country) <- countries
+pred_knots_trn_country
 ```
 
 
@@ -1306,13 +1365,11 @@ unique_years <- unique_years[
   order(unique_years$year),
 ]
 print(unique_years)
-
 # Convert quarter variable to a factor for modeling
 dta <- dta %>%
   mutate(
     quarters = factor(quarters)
   )
-
 ## Standardize continuous covariates (mean = 0, SD = 1)
 vars_to_scale <- c(
   "svyage",
@@ -1340,90 +1397,84 @@ Compare Poisson, negative binomial, and zero-inflated models
 ```{r}
 #| label: Model selection global
 #| code-summary: Model selection global
-# Poisson
-M0_global_pois <- glmmTMB(
-  svypawalk ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_global
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = poisson
-)
-
-# Negative binomial 1
-M0_global_nb1 <- glmmTMB(
-  svypawalk ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_global
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = nbinom1
-)
-
-# Negative binomial 2
-M0_global_nb2 <- glmmTMB(
-  svypawalk ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_global
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = nbinom2
-)
-
-# Zero-inflated Poisson
-M0_global_zip <- glmmTMB(
-  svypawalk ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_global
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = poisson
-)
-
-# Zero-inflated Negative Binomial 1
-M0_global_zinb1 <- glmmTMB(
-  svypawalk ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_global
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = nbinom1
-)
-
-# Zero-inflated Negative Binomial 2
-M0_global_zinb2 <- glmmTMB(
-  svypawalk ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_global
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = nbinom2
-)
-
-# Compare model fit
-AIC(
-  M0_global_pois,
-  M0_global_nb1,
-  M0_global_nb2,
-  M0_global_zip,
-  M0_global_zinb1,
-  M0_global_zinb2
-)
+# # Poisson
+# M0_global_pois <- glmmTMB(
+#   svypawalk ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_global
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = poisson
+# )
+# # Negative binomial 1
+# M0_global_nb1 <- glmmTMB(
+#   svypawalk ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_global
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = nbinom1
+# )
+# # Negative binomial 2
+# M0_global_nb2 <- glmmTMB(
+#   svypawalk ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_global
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = nbinom2
+# )
+# # Zero-inflated Poisson
+# M0_global_zip <- glmmTMB(
+#   svypawalk ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_global
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = poisson
+# )
+# # Zero-inflated Negative Binomial 1
+# M0_global_zinb1 <- glmmTMB(
+#   svypawalk ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_global
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = nbinom1
+# )
+# # Zero-inflated Negative Binomial 2
+# M0_global_zinb2 <- glmmTMB(
+#   svypawalk ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_global
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = nbinom2
+# )
+# # Compare model fit
+# AIC(
+#   M0_global_pois,
+#   M0_global_nb1,
+#   M0_global_nb2,
+#   M0_global_zip,
+#   M0_global_zinb1,
+#   M0_global_zinb2
+# )
 ```
 
 ## Leisure walking
@@ -1431,90 +1482,84 @@ AIC(
 ```{r}
 #| label: Model selection leisure
 #| code-summary: Model selection leisure
-# Poisson
-M0_lei_pois <- glmmTMB(
-  svypawlei ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = poisson
-)
-
-# Negative binomial 1
-M0_lei_nb1 <- glmmTMB(
-  svypawlei ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = nbinom1
-)
-
-# Negative binomial 2
-M0_lei_nb2 <- glmmTMB(
-  svypawlei ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = nbinom2
-)
-
-# Zero-inflated Poisson
-M0_lei_zip <- glmmTMB(
-  svypawlei ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = poisson
-)
-
-# Zero-inflated Negative Binomial 1
-M0_lei_zinb1 <- glmmTMB(
-  svypawlei ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = nbinom1
-)
-
-# Zero-inflated Negative Binomial 2
-M0_lei_zinb2 <- glmmTMB(
-  svypawlei ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = nbinom2
-)
-
-# Compare model fit
-AIC(
-  M0_lei_pois,
-  M0_lei_nb1,
-  M0_lei_nb2,
-  M0_lei_zip,
-  M0_lei_zinb1,
-  M0_lei_zinb2
-)
+# # Poisson
+# M0_lei_pois <- glmmTMB(
+#   svypawlei ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = poisson
+# )
+# # Negative binomial 1
+# M0_lei_nb1 <- glmmTMB(
+#   svypawlei ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = nbinom1
+# )
+# # Negative binomial 2
+# M0_lei_nb2 <- glmmTMB(
+#   svypawlei ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = nbinom2
+# )
+# # Zero-inflated Poisson
+# M0_lei_zip <- glmmTMB(
+#   svypawlei ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = poisson
+# )
+# # Zero-inflated Negative Binomial 1
+# M0_lei_zinb1 <- glmmTMB(
+#   svypawlei ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = nbinom1
+# )
+# # Zero-inflated Negative Binomial 2
+# M0_lei_zinb2 <- glmmTMB(
+#   svypawlei ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = nbinom2
+# )
+# # Compare model fit
+# AIC(
+#   M0_lei_pois,
+#   M0_lei_nb1,
+#   M0_lei_nb2,
+#   M0_lei_zip,
+#   M0_lei_zinb1,
+#   M0_lei_zinb2
+# )
 ```
 
 ## Transportation walking
@@ -1522,90 +1567,84 @@ AIC(
 ```{r}
 #| label: Model selection transportation
 #| code-summary: Model selection transportation
-# Poisson
-M0_trn_pois <- glmmTMB(
-  svypawtrn ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = poisson
-)
-
-# Negative binomial 1
-M0_trn_nb1 <- glmmTMB(
-  svypawtrn ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = nbinom1
-)
-
-# Negative binomial 2
-M0_trn_nb2 <- glmmTMB(
-  svypawtrn ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  data = dta,
-  family = nbinom2
-)
-
-# Zero-inflated Poisson
-M0_trn_zip <- glmmTMB(
-  svypawtrn ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = poisson
-)
-
-# Zero-inflated Negative Binomial 1
-M0_trn_zinb1 <- glmmTMB(
-  svypawtrn ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = nbinom1
-)
-
-# Zero-inflated Negative Binomial 2
-M0_trn_zinb2 <- glmmTMB(
-  svypawtrn ~
-    ns(
-      l1adtemp_pw_1_7_mean,
-      knots = pred_knots_domain
-    ) +
-    (1 | salid1),
-  ziformula = ~1,
-  data = dta,
-  family = nbinom2
-)
-
-# Compare model fit
-AIC(
-  M0_trn_pois,
-  M0_trn_nb1,
-  M0_trn_nb2,
-  M0_trn_zip,
-  M0_trn_zinb1,
-  M0_trn_zinb2
-)
+# # Poisson
+# M0_trn_pois <- glmmTMB(
+#   svypawtrn ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = poisson
+# )
+# # Negative binomial 1
+# M0_trn_nb1 <- glmmTMB(
+#   svypawtrn ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = nbinom1
+# )
+# # Negative binomial 2
+# M0_trn_nb2 <- glmmTMB(
+#   svypawtrn ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   data = dta,
+#   family = nbinom2
+# )
+# # Zero-inflated Poisson
+# M0_trn_zip <- glmmTMB(
+#   svypawtrn ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = poisson
+# )
+# # Zero-inflated Negative Binomial 1
+# M0_trn_zinb1 <- glmmTMB(
+#   svypawtrn ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = nbinom1
+# )
+# # Zero-inflated Negative Binomial 2
+# M0_trn_zinb2 <- glmmTMB(
+#   svypawtrn ~
+#     ns(
+#       l1adtemp_pw_1_7_mean,
+#       knots = pred_knots_domain
+#     ) +
+#     (1 | salid1),
+#   ziformula = ~1,
+#   data = dta,
+#   family = nbinom2
+# )
+# # Compare model fit
+# AIC(
+#   M0_trn_pois,
+#   M0_trn_nb1,
+#   M0_trn_nb2,
+#   M0_trn_zip,
+#   M0_trn_zinb1,
+#   M0_trn_zinb2
+# )
 ```
 
 
@@ -1615,20 +1654,39 @@ AIC(
 ```{r}
 #| label: Function
 #| code-summary: Function
-
 run_knot_sensitivity <- function(
-    outcome_var,
-    outcome_label,
-    knot_options,
-    dta,
-    cl) {
+  outcome_var,
+  outcome_label,
+  knot_options,
+  dta,
+  cl
+) {
+  covars <- c(
+    "svyage_scaled",
+    "svymale",
+    "svyedu",
+    "becmedndvinwl2_scaled",
+    "becprsbrtl1ad",
+    "becpopdensl2_scaled",
+    "becadintdensl2_scaled",
+    "becparknumpercapl2_scaled",
+    "cnssei_l1ad_scaled"
+  )
   models <- pblapply(
     seq_along(knot_options),
     function(i) {
       tryCatch({
-        valid_idx <-
-          !is.na(dta[[outcome_var]]) &
-          !is.na(dta$l1adtemp_pw_1_7_mean)
+        valid_idx <- complete.cases(
+          dta[, c(
+            outcome_var,
+            "l1adtemp_pw_1_7_mean",
+            "salid1",
+            "iso2",
+            "quarters",
+            "year_c",
+            covars
+          )]
+        )
         knots <- quantile(
           dta$l1adtemp_pw_1_7_mean[valid_idx],
           probs = knot_options[[i]],
@@ -1638,11 +1696,12 @@ run_knot_sensitivity <- function(
           paste0(
             outcome_var,
             " ~ ",
-            "ns(l1adtemp_pw_1_7_mean, knots = knots) + ",
+            "splines::ns(l1adtemp_pw_1_7_mean, knots = knots) + ",
             "(1 | salid1) + ",
             "factor(iso2) + ",
             "factor(quarters) + ",
-            "year_c"
+            "year_c + ",
+            paste(covars, collapse = " + ")
           )
         )
         glmmTMB(
@@ -1657,12 +1716,12 @@ run_knot_sensitivity <- function(
             "Model error:",
             outcome_label,
             "-",
-            i,
+            names(knot_options)[i],
             "-",
             e$message
           )
         )
-        return(NULL)
+        NULL
       })
     },
     cl = cl
@@ -1673,13 +1732,14 @@ run_knot_sensitivity <- function(
     model = names(models),
     AIC = sapply(
       models,
-      function(m)
+      function(m) {
         if (is.null(m)) NA else AIC(m)
+      }
     )
-  ) %>%
-    filter(!is.na(AIC)) %>%
-    arrange(AIC) %>%
-    mutate(
+  ) |>
+    dplyr::filter(!is.na(AIC)) |>
+    dplyr::arrange(AIC) |>
+    dplyr::mutate(
       delta_AIC = AIC - min(AIC)
     )
   return(results)
@@ -1689,7 +1749,6 @@ run_knot_sensitivity <- function(
 ```{r}
 #| label: Parallel setup
 #| code-summary: Parallel setup
-
 n_cores <- max(1, detectCores() - 2)
 cl <- makeCluster(n_cores)
 clusterExport(
@@ -1709,68 +1768,62 @@ clusterEvalQ(cl, {
 ```{r}
 #| label: Knots global
 #| code-summary: Knots global
-
-results_global <- run_knot_sensitivity(
-  outcome_var = "svypawalk",
-  outcome_label = "Global walking",
-  knot_options = knot_options,
-  dta = dta,
-  cl = cl
-)
+# results_global <- run_knot_sensitivity(
+#   outcome_var = "svypawalk",
+#   outcome_label = "Global walking",
+#   knot_options = knot_options,
+#   dta = dta,
+#   cl = cl
+# )
 ```
 
 ```{r}
 #| label: Knots leisure
 #| code-summary: Knots leisure
-
-results_lei <- run_knot_sensitivity(
-  outcome_var = "svypawlei",
-  outcome_label = "Leisure walking",
-  knot_options = knot_options,
-  dta = dta,
-  cl = cl
-)
+# results_lei <- run_knot_sensitivity(
+#   outcome_var = "svypawlei",
+#   outcome_label = "Leisure walking",
+#   knot_options = knot_options,
+#   dta = dta,
+#   cl = cl
+# )
 ```
 
 ```{r}
 #| label: Knots transportation
 #| code-summary: Knots transportation
-
-results_trn <- run_knot_sensitivity(
-  outcome_var = "svypawtrn",
-  outcome_label = "Transportation walking",
-  knot_options = knot_options,
-  dta = dta,
-  cl = cl
-)
+# results_trn <- run_knot_sensitivity(
+#   outcome_var = "svypawtrn",
+#   outcome_label = "Transportation walking",
+#   knot_options = knot_options,
+#   dta = dta,
+#   cl = cl
+# )
 ```
 
 ```{r}
 #| label: Knots output
 #| code-summary: Knots output
-
-# Stop cluster
-stopCluster(cl)
-
-# Combine results
-all_results <- bind_rows(
-  results_global,
-  results_lei,
-  results_trn
-) %>%
-  arrange(
-    outcome,
-    delta_AIC
-  )
-
-# Save results
-write.table(
-  all_results,
-  file = "knot_sensitivity_results.txt",
-  sep = "\t",
-  row.names = FALSE,
-  quote = FALSE
-)
+# # Stop cluster
+# stopCluster(cl)
+# # Combine results
+# all_results <- bind_rows(
+#   results_global,
+#   results_lei,
+#   results_trn
+# ) %>%
+#   arrange(
+#     outcome,
+#     delta_AIC
+#   )
+# # Save results
+# write.table(
+#   all_results,
+#   file = "knot_sensitivity_results.txt",
+#   sep = "\t",
+#   row.names = FALSE,
+#   quote = FALSE
+# )
 ```
 
 
@@ -1780,21 +1833,46 @@ write.table(
 ## Global walking
 
 ```{r}
-#| label: Base model global
-#| code-summary: Base model global
-M1_global_zinb2 <- glmmTMB(
+#| label: Base model global with penalized spline
+#| code-summary: Base model global with penalized spline
+M1_global_pspline <- glmmTMB(
   svypawalk ~
-    ns(l1adtemp_pw_1_7_mean, knots = pred_knots_global) +
+    s(
+      l1adtemp_pw_1_7_mean,
+      bs = "ps",
+      k = 10
+    ) +
     (1 | salid1) +
-    factor(iso2) + 
+    factor(iso2) +
     factor(quarters) +
     year_c,
   ziformula = ~1,
   data = dta,
   family = nbinom2
 )
+```
 
+```{r}
+#| label: Base model global
+#| code-summary: Base model global
+M1_global_zinb2 <- glmmTMB(
+  svypawalk ~
+    splines::ns(l1adtemp_pw_1_7_mean, knots = pred_knots_global) +
+    (1 | salid1) +
+    factor(iso2) +
+    factor(quarters) +
+    year_c,
+  ziformula = ~1,
+  data = dta,
+  family = nbinom2
+)
 summary(M1_global_zinb2)
+```
+
+```{r}
+#| label: AIC comparison global models
+#| code-summary: AIC comparison of global models
+AIC(M1_global_pspline, M1_global_zinb2)
 ```
 
 ```{r}
@@ -1806,7 +1884,6 @@ pred_global <- ggpredict(
   terms = "l1adtemp_pw_1_7_mean [all]",
   bias_correction = TRUE
 )
-
 # Convert to data frame
 pred_global_df <- as.data.frame(pred_global) %>%
   rename(
@@ -1815,14 +1892,12 @@ pred_global_df <- as.data.frame(pred_global) %>%
     lower = conf.low,
     upper = conf.high
   )
-
 # Define reference temperature (25th percentile)
 ref_temp <- pred_knots_global[[1]]
 ref_index <- which.min(
   abs(pred_global_df$temperature - ref_temp)
 )
 ref_rate <- pred_global_df$predicted[ref_index]
-
 # Calculate IRR
 pred_global_df <- pred_global_df %>%
   mutate(
@@ -1830,7 +1905,6 @@ pred_global_df <- pred_global_df %>%
     IRR_low = lower / ref_rate,
     IRR_high = upper / ref_rate
   )
-
 # Extract estimates at key percentiles
 temps_interest <- as.numeric(pred_knots_global)
 irr_global_table <- lapply(
@@ -1846,8 +1920,8 @@ irr_global_table <- lapply(
   mutate(
     percentile = c(
       "25th percentile",
-      "75th percentile",
-      "95th percentile"
+      "60th percentile",
+      "85th percentile"
     ),
     IRR_CI = paste0(
       round(IRR, 2),
@@ -1863,7 +1937,6 @@ irr_global_table <- lapply(
     temperature,
     IRR_CI
   )
-
 irr_global_table
 ```
 
@@ -1905,21 +1978,46 @@ ggplot(
 ## Leisure walking
 
 ```{r}
-#| label: Base model leisure
-#| code-summary: Base model leisure
-M1_lei_zinb2 <- glmmTMB(
+#| label: Base model leisure with penalized spline
+#| code-summary: Base model leisure with penalized spline
+M1_lei_pspline <- glmmTMB(
   svypawlei ~
-    ns(l1adtemp_pw_1_7_mean, knots = pred_knots_global) +
+    s(
+      l1adtemp_pw_1_7_mean,
+      bs = "ps",
+      k = 10
+    ) +
     (1 | salid1) +
-    factor(iso2) + 
+    factor(iso2) +
     factor(quarters) +
     year_c,
   ziformula = ~1,
   data = dta,
   family = nbinom2
 )
+```
 
+```{r}
+#| label: Base model leisure
+#| code-summary: Base model leisure
+M1_lei_zinb2 <- glmmTMB(
+  svypawlei ~
+    splines::ns(l1adtemp_pw_1_7_mean, knots = pred_knots_lei) +
+    (1 | salid1) +
+    factor(iso2) +
+    factor(quarters) +
+    year_c,
+  ziformula = ~1,
+  data = dta,
+  family = nbinom2
+)
 summary(M1_lei_zinb2)
+```
+
+```{r}
+#| label: AIC comparison leisure models
+#| code-summary: AIC comparison of leisure models
+AIC(M1_lei_pspline, M1_lei_zinb2)
 ```
 
 ```{r}
@@ -1937,7 +2035,7 @@ pred_lei_df <- as.data.frame(pred_lei) %>%
     lower = conf.low,
     upper = conf.high
   )
-ref_temp <- pred_knots_domain[[1]]
+ref_temp <- pred_knots_lei[[1]]
 ref_index <- which.min(
   abs(pred_lei_df$temperature - ref_temp)
 )
@@ -1948,7 +2046,7 @@ pred_lei_df <- pred_lei_df %>%
     IRR_low = lower / ref_rate,
     IRR_high = upper / ref_rate
   )
-temps_interest <- as.numeric(pred_knots_domain)
+temps_interest <- as.numeric(pred_knots_lei)
 irr_lei_table <- lapply(
   temps_interest,
   function(temp) {
@@ -1979,7 +2077,6 @@ irr_lei_table <- lapply(
     temperature,
     IRR_CI
   )
-
 irr_lei_table
 ```
 
@@ -2021,21 +2118,46 @@ ggplot(
 ## Transportation walking
 
 ```{r}
-#| label: Base model transportation
-#| code-summary: Base model transportation
-M1_trn_zinb2 <- glmmTMB(
+#| label: Base model transportation with penalized spline
+#| code-summary: Base model transportation with penalized spline
+M1_trn_pspline <- glmmTMB(
   svypawtrn ~
-    ns(l1adtemp_pw_1_7_mean, knots = pred_knots_global) +
+    s(
+      l1adtemp_pw_1_7_mean,
+      bs = "ps",
+      k = 10
+    ) +
     (1 | salid1) +
-    factor(iso2) + 
+    factor(iso2) +
     factor(quarters) +
     year_c,
   ziformula = ~1,
   data = dta,
   family = nbinom2
 )
+```
 
+```{r}
+#| label: Base model transportation
+#| code-summary: Base model transportation
+M1_trn_zinb2 <- glmmTMB(
+  svypawtrn ~
+    splines::ns(l1adtemp_pw_1_7_mean, knots = pred_knots_trn) +
+    (1 | salid1) +
+    factor(iso2) +
+    factor(quarters) +
+    year_c,
+  ziformula = ~1,
+  data = dta,
+  family = nbinom2
+)
 summary(M1_trn_zinb2)
+```
+
+```{r}
+#| label: AIC comparison transportation models
+#| code-summary: AIC comparison of transportation models
+AIC(M1_trn_pspline, M1_trn_zinb2)
 ```
 
 ```{r}
@@ -2053,7 +2175,7 @@ pred_trn_df <- as.data.frame(pred_trn) %>%
     lower = conf.low,
     upper = conf.high
   )
-ref_temp <- pred_knots_domain[[1]]
+ref_temp <- pred_knots_trn[[1]]
 ref_index <- which.min(
   abs(pred_trn_df$temperature - ref_temp)
 )
@@ -2064,11 +2186,255 @@ pred_trn_df <- pred_trn_df %>%
     IRR_low = lower / ref_rate,
     IRR_high = upper / ref_rate
   )
-temps_interest <- as.numeric(pred_knots_domain)
+temps_interest <- as.numeric(pred_knots_trn)
 irr_trn_table <- lapply(
   temps_interest,
   function(temp) {
     pred_trn_df %>%
+      slice(
+        which.min(abs(temperature - temp))
+      )
+  }
+) %>%
+  bind_rows() %>%
+  mutate(
+    percentile = c(
+      "10th percentile",
+      "50th percentile",
+      "85th percentile"
+    ),
+    IRR_CI = paste0(
+      round(IRR, 2),
+      " (",
+      round(IRR_low, 2),
+      "; ",
+      round(IRR_high, 2),
+      ")"
+    )
+  ) %>%
+  select(
+    percentile,
+    temperature,
+    IRR_CI
+  )
+irr_trn_table
+```
+
+```{r}
+#| label: Curve transportation
+#| code-summary: Curve transportation
+ggplot(
+  pred_trn_df,
+  aes(
+    x = temperature,
+    y = IRR
+  )
+) +
+  geom_ribbon(
+    aes(
+      ymin = IRR_low,
+      ymax = IRR_high
+    ),
+    alpha = 0.20
+  ) +
+  geom_line(
+    linewidth = 1
+  ) +
+  geom_hline(
+    yintercept = 1,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = ref_temp,
+    linetype = "dashed"
+  ) +
+  labs(
+    x = "Mean temperature (°C)",
+    y = "Incidence Rate Ratio (IRR)"
+  ) +
+  theme_minimal()
+```
+
+
+
+# Fully adjusted models
+
+## Global walking
+
+```{r}
+#| label: Full adjusted model global
+#| code-summary: Full adjusted model global
+M2_global_zinb2 <- glmmTMB(
+  svypawalk ~
+    splines::ns(l1adtemp_pw_1_7_mean, knots = pred_knots_global) +
+    (1 | salid1) +
+    factor(iso2) +
+    factor(quarters) +
+    year_c +
+    svyage_scaled + svymale + svyedu +
+    becmedndvinwl2_scaled +
+    becprsbrtl1ad + becpopdensl2_scaled + 
+    becadintdensl2_scaled + becparknumpercapl2_scaled +
+    cnssei_l1ad_scaled,
+  ziformula = ~1,
+  data = dta,
+  family = nbinom2
+)
+summary(M2_global_zinb2)
+check_collinearity(M2_global_zinb2)
+```
+
+```{r}
+#| label: IRR table global (full model)
+#| code-summary: IRR table global (full model)
+pred_global <- ggpredict(
+  M2_global_zinb2,
+  terms = "l1adtemp_pw_1_7_mean [all]",
+  bias_correction = TRUE
+)
+pred_global_df <- as.data.frame(pred_global) %>%
+  rename(
+    temperature = x,
+    predicted = predicted,
+    lower = conf.low,
+    upper = conf.high
+  )
+ref_temp <- pred_knots_global[[1]]
+ref_index <- which.min(
+  abs(pred_global_df$temperature - ref_temp)
+)
+ref_rate <- pred_global_df$predicted[ref_index]
+pred_global_df <- pred_global_df %>%
+  mutate(
+    IRR = predicted / ref_rate,
+    IRR_low = lower / ref_rate,
+    IRR_high = upper / ref_rate
+  )
+temps_interest <- as.numeric(pred_knots_global)
+irr_global_table <- lapply(
+  temps_interest,
+  function(temp) {
+    pred_global_df %>%
+      slice(
+        which.min(abs(temperature - temp))
+      )
+  }
+) %>%
+  bind_rows() %>%
+  mutate(
+    percentile = c(
+      "25th percentile",
+      "60th percentile",
+      "85th percentile"
+    ),
+    IRR_CI = paste0(
+      round(IRR, 2),
+      " (",
+      round(IRR_low, 2),
+      "; ",
+      round(IRR_high, 2),
+      ")"
+    )
+  ) %>%
+  select(
+    percentile,
+    temperature,
+    IRR_CI
+  )
+irr_global_table
+```
+
+```{r}
+#| label: Curve global (full model)
+#| code-summary: Curve global (full model)
+ggplot(
+  pred_global_df,
+  aes(
+    x = temperature,
+    y = IRR
+  )
+) +
+  geom_ribbon(
+    aes(
+      ymin = IRR_low,
+      ymax = IRR_high
+    ),
+    alpha = 0.20
+  ) +
+  geom_line(
+    linewidth = 1
+  ) +
+  geom_hline(
+    yintercept = 1,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = ref_temp,
+    linetype = "dashed"
+  ) +
+  labs(
+    x = "Mean temperature (°C)",
+    y = "Incidence Rate Ratio (IRR)"
+  ) +
+  theme_minimal()
+```
+
+## Leisure walking
+
+```{r}
+#| label: Full adjusted model leisure
+#| code-summary: Full adjusted model leisure
+M2_lei_zinb2 <- glmmTMB(
+  svypawlei ~
+    splines::ns(l1adtemp_pw_1_7_mean, knots = pred_knots_lei) +
+    (1 | salid1) +
+    factor(iso2) +
+    factor(quarters) +
+    year_c +
+    svyage_scaled + svymale + svyedu +
+    becmedndvinwl2_scaled +
+    becprsbrtl1ad + becpopdensl2_scaled + 
+    becadintdensl2_scaled + becparknumpercapl2_scaled +
+    cnssei_l1ad_scaled,
+  ziformula = ~1,
+  data = dta,
+  family = nbinom2
+)
+summary(M2_lei_zinb2)
+check_collinearity(M2_lei_zinb2)
+```
+
+```{r}
+#| label: IRR table leisure (full model)
+#| code-summary: IRR table leisure (full model)
+pred_lei <- ggpredict(
+  M2_lei_zinb2,
+  terms = "l1adtemp_pw_1_7_mean [all]",
+  bias_correction = TRUE
+)
+pred_lei_df <- as.data.frame(pred_lei) %>%
+  rename(
+    temperature = x,
+    predicted = predicted,
+    lower = conf.low,
+    upper = conf.high
+  )
+ref_temp <- pred_knots_lei[[1]]
+ref_index <- which.min(
+  abs(pred_lei_df$temperature - ref_temp)
+)
+ref_rate <- pred_lei_df$predicted[ref_index]
+pred_lei_df <- pred_lei_df %>%
+  mutate(
+    IRR = predicted / ref_rate,
+    IRR_low = lower / ref_rate,
+    IRR_high = upper / ref_rate
+  )
+temps_interest <- as.numeric(pred_knots_lei)
+irr_lei_table <- lapply(
+  temps_interest,
+  function(temp) {
+    pred_lei_df %>%
       slice(
         which.min(abs(temperature - temp))
       )
@@ -2095,13 +2461,132 @@ irr_trn_table <- lapply(
     temperature,
     IRR_CI
   )
+irr_lei_table
+```
 
+```{r}
+#| label: Curve leisure (full model)
+#| code-summary: Curve leisure (full model)
+ggplot(
+  pred_lei_df,
+  aes(
+    x = temperature,
+    y = IRR
+  )
+) +
+  geom_ribbon(
+    aes(
+      ymin = IRR_low,
+      ymax = IRR_high
+    ),
+    alpha = 0.20
+  ) +
+  geom_line(
+    linewidth = 1
+  ) +
+  geom_hline(
+    yintercept = 1,
+    linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = ref_temp,
+    linetype = "dashed"
+  ) +
+  labs(
+    x = "Mean temperature (°C)",
+    y = "Incidence Rate Ratio (IRR)"
+  ) +
+  theme_minimal()
+```
+
+## Transportation walking
+
+```{r}
+#| label: Full adjusted model transportation
+#| code-summary: Full adjusted model transportation
+M2_trn_zinb2 <- glmmTMB(
+  svypawtrn ~
+    splines::ns(l1adtemp_pw_1_7_mean, knots = pred_knots_trn) +
+    (1 | salid1) +
+    factor(iso2) +
+    factor(quarters) +
+    year_c +
+    svyage_scaled + svymale + svyedu +
+    becmedndvinwl2_scaled +
+    becprsbrtl1ad + becpopdensl2_scaled + 
+    becadintdensl2_scaled + becparknumpercapl2_scaled +
+    cnssei_l1ad_scaled,
+  ziformula = ~1,
+  data = dta,
+  family = nbinom2
+)
+summary(M2_trn_zinb2)
+check_collinearity(M2_trn_zinb2)
+```
+
+```{r}
+#| label: IRR table transportation (full model)
+#| code-summary: IRR table transportation (full model)
+pred_trn <- ggpredict(
+  M2_trn_zinb2,
+  terms = "l1adtemp_pw_1_7_mean [all]",
+  bias_correction = TRUE
+)
+pred_trn_df <- as.data.frame(pred_trn) %>%
+  rename(
+    temperature = x,
+    predicted = predicted,
+    lower = conf.low,
+    upper = conf.high
+  )
+ref_temp <- pred_knots_trn[[1]]
+ref_index <- which.min(
+  abs(pred_trn_df$temperature - ref_temp)
+)
+ref_rate <- pred_trn_df$predicted[ref_index]
+pred_trn_df <- pred_trn_df %>%
+  mutate(
+    IRR = predicted / ref_rate,
+    IRR_low = lower / ref_rate,
+    IRR_high = upper / ref_rate
+  )
+temps_interest <- as.numeric(pred_knots_trn)
+irr_trn_table <- lapply(
+  temps_interest,
+  function(temp) {
+    pred_trn_df %>%
+      slice(
+        which.min(abs(temperature - temp))
+      )
+  }
+) %>%
+  bind_rows() %>%
+  mutate(
+    percentile = c(
+      "10th percentile",
+      "50th percentile",
+      "85th percentile"
+    ),
+    IRR_CI = paste0(
+      round(IRR, 2),
+      " (",
+      round(IRR_low, 2),
+      "; ",
+      round(IRR_high, 2),
+      ")"
+    )
+  ) %>%
+  select(
+    percentile,
+    temperature,
+    IRR_CI
+  )
 irr_trn_table
 ```
 
 ```{r}
-#| label: Curve transportation
-#| code-summary: Curve transportation
+#| label: Curve transportation (full model)
+#| code-summary: Curve transportation (full model)
 ggplot(
   pred_trn_df,
   aes(
